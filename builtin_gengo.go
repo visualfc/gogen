@@ -205,15 +205,6 @@ func initBuiltinOps(builtin *types.Package, conf *Config) {
 	gbl.Insert(NewInstruction(token.NoPos, builtin, xgoPrefix+"Addr", addrInstr{}))
 }
 
-func newTParams(params []typeTParam) []*TemplateParamType {
-	n := len(params)
-	tparams := make([]*TemplateParamType, n)
-	for i, tparam := range params {
-		tparams[i] = NewTemplateParamType(i, tparam.name, tparam.contract)
-	}
-	return tparams
-}
-
 var _assignOps = [...]struct {
 	name     string
 	t        Contract
@@ -270,15 +261,6 @@ func initBuiltinAssignOps(builtin *types.Package, conf *Config) {
 		tfn := NewTemplateFunc(token.NoPos, builtin, name, tsig)
 		gbl.Insert(tfn)
 	}
-}
-
-func newOpTParams(t Contract, utinteger bool) []*TemplateParamType {
-	tparams := make([]*TemplateParamType, 1, 2)
-	tparams[0] = NewTemplateParamType(0, "T", t)
-	if utinteger {
-		tparams = append(tparams, NewTemplateParamType(1, "N", ninteger))
-	}
-	return tparams
 }
 
 func newOpTypeParams(pkg *types.Package, conf *Config, t Contract, utinteger bool) []*types.TypeParam {
@@ -481,25 +463,6 @@ func newBFunc(builtin *types.Package, name string, t typeBFunc) types.Object {
 	result := types.NewParam(token.NoPos, builtin, "", types.Typ[t.result])
 	sig := types.NewSignatureType(nil, nil, nil, types.NewTuple(vars...), types.NewTuple(result), false)
 	return types.NewFunc(token.NoPos, builtin, name, sig)
-}
-
-func newXParamType(tparams []*TemplateParamType, x xType) types.Type {
-	if tidx, ok := x.(int); ok {
-		idx := tidx & 0xffff
-		switch tidx &^ 0xffff {
-		case xtNone:
-			return tparams[idx]
-		case xtEllipsis, xtSlice:
-			return NewSlice(tparams[idx])
-		case xtMap:
-			return NewMap(tparams[idx], tparams[idx+1])
-		case xtChanIn:
-			return NewChan(types.SendOnly, tparams[idx])
-		default:
-			panic("TODO: newXParamType - unexpected xType")
-		}
-	}
-	return x.(types.Type)
 }
 
 func newXTypeParamType(tparams []*types.TypeParam, x xType) types.Type {

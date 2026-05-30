@@ -745,7 +745,8 @@ retry:
 				return nil, err
 			}
 		} else {
-			sig, it = t.instantiate()
+			panic("error")
+			//sig, it = t.instantiate()
 		}
 	case *TyInstruction:
 		return t.instr.Call(pkg, args, lhs, flags, fn.Src)
